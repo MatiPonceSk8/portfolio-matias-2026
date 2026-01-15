@@ -1,0 +1,41 @@
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  /* Reseteo básico para que no haya bordes blancos molestos */
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+  background-color: #EDE8E4; /* Color Crema de fondo base */
+  overflow-x: hidden; /* Evita scroll lateral indeseado */
+}
+
+/* IMPORTANTE: Esto permite que la app ocupe todo el alto real */
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Scrollbar personalizada (Opcional, toque pro) */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #EDE8E4;
+}
+::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #FF5722;
+}
