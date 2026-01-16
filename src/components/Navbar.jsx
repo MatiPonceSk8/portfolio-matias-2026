@@ -19,7 +19,7 @@ const Navbar = ({ language, setLanguage }) => {
   const iconStyle = {
     width: '20px',
     height: '20px',
-    fill: 'currentColor', // Esto hace que tomen el color del texto (blanco/negro según el fondo)
+    fill: 'currentColor',
     cursor: 'pointer',
     transition: 'opacity 0.3s'
   };
@@ -29,7 +29,7 @@ const Navbar = ({ language, setLanguage }) => {
       position: 'fixed', top: 0, left: 0, width: '100%', padding: '20px 40px',
       display: 'flex', justifyContent: 'space-between', alignItems: 'center',
       zIndex: 100, boxSizing: 'border-box',
-      mixBlendMode: 'difference', // La magia del color inverso
+      mixBlendMode: 'difference', 
       color: '#EDE8E4' 
     }}>
       
