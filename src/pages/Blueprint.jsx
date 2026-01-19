@@ -30,6 +30,9 @@ const Blueprint = ({ language, setLanguage }) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   useEffect(() => {
+    // FORZAR SCROLL ARRIBA AL ENTRAR
+    window.scrollTo(0, 0);
+
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -44,6 +47,7 @@ const Blueprint = ({ language, setLanguage }) => {
   const act1TransRef = useRef(null);
   const s1Ref = useRef(null);
   const analysisBgRef = useRef(null);
+  const symbol1Ref = useRef(null); // Ref específica para el SVG 1
 
   // ACTO 2: FIRMITAS
   const act2TransRef = useRef(null);
@@ -54,6 +58,7 @@ const Blueprint = ({ language, setLanguage }) => {
   const act3TransRef = useRef(null);
   const s3Ref = useRef(null);
   const venustasLightRef = useRef(null);
+  const symbol3Ref = useRef(null); // Ref específica para el SVG 3
 
   // ACTO 4: REALITY CHECK (Apple Terminal)
   const act4Ref = useRef(null);
@@ -129,7 +134,19 @@ const Blueprint = ({ language, setLanguage }) => {
   useEffect(() => {
     if (!window.anime) return;
 
-    // Setup Acto 1
+    // --- SETUP PREVIO DE SVG PARA EVITAR SALTOS ---
+    const prepareSVG = (ref) => {
+        if(ref.current) {
+            ref.current.querySelectorAll('path, circle, line, rect').forEach(p => {
+                const len = p.getTotalLength();
+                p.style.strokeDasharray = len;
+                p.style.strokeDashoffset = len;
+            });
+        }
+    };
+
+    // Setup Acto 1 (Partículas y SVG)
+    prepareSVG(symbol1Ref); // IMPORTANTE: Preparar Symbol 1
     const analysisContainer = analysisBgRef.current;
     if (analysisContainer) {
         analysisContainer.innerHTML = '';
@@ -147,13 +164,19 @@ const Blueprint = ({ language, setLanguage }) => {
         }
     }
     
-    // Setup Acto 2
-    if(gridLinesRef.current) {
-        gridLinesRef.current.querySelectorAll('line, rect').forEach(p => {
-            p.style.strokeDasharray = p.getTotalLength();
-            p.style.strokeDashoffset = p.getTotalLength();
+    // Setup Acto 2 (SVG)
+    if(gridLinesRef.current) prepareSVG(gridLinesRef);
+    if(act2TransRef.current) {
+        const s2Svg = act2TransRef.current.querySelector('svg');
+        if(s2Svg) s2Svg.querySelectorAll('rect, line').forEach(p => {
+             const len = p.getTotalLength();
+             p.style.strokeDasharray = len;
+             p.style.strokeDashoffset = len;
         });
     }
+
+    // Setup Acto 3 (SVG)
+    prepareSVG(symbol3Ref);
 
     // === TIMELINE DE ENTRADA (AUTO-PLAY) ===
     const introTl = window.anime.timeline({ autoplay: true, easing: 'easeOutExpo' });
@@ -209,15 +232,16 @@ const Blueprint = ({ language, setLanguage }) => {
     })
     .add({ targets: containerRef.current, backgroundColor: ['#0B1120', '#050505'], duration: 800 }, '-=600')
 
-    // === ACTO I ===
+    // === ACTO I: INTELLECTUS (SOLUCIONADO EL SALTO) ===
     .add({ targets: act1TransRef.current, opacity: [0, 1], scale: [0.9, 1], duration: 600 })
-    .add({ targets: '#symbol-1 circle, #symbol-1 path', strokeDashoffset: [window.anime.setDashoffset, 0], duration: 1500, easing: 'easeInOutQuart' }, '-=400')
+    // Usamos el ref directo para asegurar el target, y valores numéricos simples
+    .add({ targets: symbol1Ref.current.querySelectorAll('circle, path'), strokeDashoffset: [window.anime.setDashoffset, 0], duration: 1500, easing: 'easeInOutQuart' }, '-=400')
     .add({ targets: act1TransRef.current, opacity: 0, scale: 1.2, filter: 'blur(10px)', duration: 600, delay: 500 })
     .add({ targets: s1Ref.current, opacity: [0, 1], duration: 800 })
     .add({ targets: analysisBgRef.current.children, opacity: [0, 0.6], translateY: [50, 0], delay: window.anime.stagger(20), duration: 1000 }, '-=600')
     .add({ targets: s1Ref.current, opacity: 0, translateY: -50, duration: 600, delay: 800 })
 
-    // === ACTO II ===
+    // === ACTO II: FIRMITAS ===
     .add({ targets: containerRef.current, backgroundColor: ['#050505', '#1E293B'], duration: 1000 }, '-=600')
     .add({ targets: act2TransRef.current, opacity: [0, 1], scale: [0.9, 1], duration: 600 })
     .add({ targets: '#symbol-2 rect, #symbol-2 line', strokeDashoffset: [window.anime.setDashoffset, 0], duration: 1500, easing: 'easeInOutQuart' }, '-=400')
@@ -226,20 +250,16 @@ const Blueprint = ({ language, setLanguage }) => {
     .add({ targets: gridLinesRef.current.querySelectorAll('line, rect'), strokeDashoffset: [window.anime.setDashoffset, 0], duration: 2000, easing: 'easeOutExpo' }, '-=600')
     .add({ targets: s2Ref.current, opacity: 0, scale: 0.9, duration: 600, delay: 800 })
 
-    // === ACTO III ===
+    // === ACTO III: VENUSTAS ===
     .add({ targets: containerRef.current, backgroundColor: ['#1E293B', '#F8FAFC'], duration: 1000 }, '-=600')
     .add({ targets: act3TransRef.current, opacity: [0, 1], scale: [0.9, 1], duration: 600 })
-    .add({ targets: '#symbol-3 path', strokeDashoffset: [window.anime.setDashoffset, 0], duration: 2000, easing: 'easeOutQuart' }, '-=400')
+    .add({ targets: symbol3Ref.current.querySelectorAll('path, circle'), strokeDashoffset: [window.anime.setDashoffset, 0], duration: 2000, easing: 'easeOutQuart' }, '-=400')
     .add({ targets: act3TransRef.current, opacity: 0, scale: 1.2, filter: 'blur(10px)', duration: 600, delay: 500 })
     .add({ targets: s3Ref.current, opacity: [0, 1], duration: 800 })
     .add({ targets: venustasLightRef.current, opacity: [0, 0.6], scale: [0.8, 1], duration: 2000 }, '-=800')
     
-    // === ACTO IV: MAC TERMINAL (REALITY CHECK - FIXED) ===
-    
-    // 1. Pausa dramática
+    // === ACTO IV: MAC TERMINAL (REALITY CHECK) ===
     .add({}, '+=500')
-
-    // 2. La Interferencia (Glitch en Venustas)
     .add({
         targets: s3Ref.current,
         textShadow: [
@@ -254,27 +274,19 @@ const Blueprint = ({ language, setLanguage }) => {
         duration: 600,
         easing: 'easeInOutSine'
     })
-
-    // 3. Corte a Negro (Fondo)
     .add({
         targets: containerRef.current,
         backgroundColor: ['#F8FAFC', '#121212'], 
         duration: 50,
         easing: 'linear'
     }, '-=100')
-    .add({ 
-        targets: s3Ref.current, opacity: 0, duration: 50 
-    }, '-=50')
-    
-    // 4. Aparece la Terminal (Con Z-Index alto)
+    .add({ targets: s3Ref.current, opacity: 0, duration: 50 }, '-=50')
     .add({
         targets: act4Ref.current,
         opacity: [0, 1],
         duration: 200, 
         begin: () => { if(act4Ref.current) act4Ref.current.style.pointerEvents = 'auto'; }
     })
-
-    // 5. Scroll de Comandos Reales
     .add({
         targets: '.hacker-line',
         opacity: [0, 1],
@@ -283,8 +295,6 @@ const Blueprint = ({ language, setLanguage }) => {
         duration: 100,
         easing: 'linear'
     })
-
-    // 6. Mensaje Final
     .add({
         targets: ['.final-prompt', '.final-msg-1', '.final-msg-2'],
         opacity: [0, 1],
@@ -292,7 +302,6 @@ const Blueprint = ({ language, setLanguage }) => {
         duration: 500,
         easing: 'linear'
     }, '+=600')
-
     .add({
         targets: '.final-highlight',
         opacity: [0, 1],
@@ -300,8 +309,6 @@ const Blueprint = ({ language, setLanguage }) => {
         duration: 1000,
         easing: 'easeOutExpo'
     }, '+=200')
-
-    // 7. Comando final
     .add({
         targets: '#terminal-btn',
         opacity: [0, 1],
@@ -325,7 +332,8 @@ const Blueprint = ({ language, setLanguage }) => {
   }, [language]);
 
   // --- ESTILOS ---
-  const fullScreen = { position: 'absolute', width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden' };
+  // AÑADIDO Z-INDEX 5 A FULLSCREEN PARA ASEGURAR QUE EL CONTENIDO ESTÉ POR ENCIMA DEL BACKGROUND PERO DEBAJO DE LAS TRANSICIONES
+  const fullScreen = { position: 'absolute', width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', zIndex: 5 };
   
   const transContainerStyle = { 
       position: 'absolute', width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', 
@@ -344,11 +352,10 @@ const Blueprint = ({ language, setLanguage }) => {
       return language === 'es' ? '12vw' : '13vw';
   };
 
-  // ESTILOS APPLE TERMINAL (FULL SCREEN & FLEXBOX FIX)
+  // ESTILOS APPLE TERMINAL
   const terminalTextColor = '#F0F0F0'; 
   const highlightColor = '#4ADE80'; 
 
-  // Contenedor con z-index alto para tapar el navbar
   const terminalContainerStyle = {
       position: 'absolute',
       inset: 0, 
@@ -360,7 +367,7 @@ const Blueprint = ({ language, setLanguage }) => {
       display: 'flex',
       flexDirection: 'column', 
       padding: 0,
-      zIndex: 9999 // <--- ESTO TAPA EL NAVBAR
+      zIndex: 9999 
   };
 
   const terminalHeaderStyle = {
@@ -378,7 +385,7 @@ const Blueprint = ({ language, setLanguage }) => {
 
   const terminalBodyStyle = {
       padding: isMobile ? '15px' : '30px',
-      paddingTop: '20px', // Espacio extra para que no se pegue arriba
+      paddingTop: '20px', 
       flexGrow: 1, 
       overflowY: 'auto',
       display: 'flex',
@@ -390,7 +397,6 @@ const Blueprint = ({ language, setLanguage }) => {
 
 
   return (
-    // Altura aumentada para el 4to acto (5200vh)
     <div ref={containerRef} style={{ height: isMobile ? '5200vh' : '4400vh', backgroundColor: '#0B1120', position: 'relative' }}>
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Cormorant+Garamond:wght@300;400;600&family=Italiana&family=Pinyon+Script&family=Playfair+Display:ital,wght@0,400;1,400&family=Space+Grotesk:wght@300;500;700&family=Fira+Code:wght@400;600&display=swap');`}</style>
 
@@ -436,7 +442,7 @@ const Blueprint = ({ language, setLanguage }) => {
 
             {/* === I. INTELLECTUS === */}
             <div ref={act1TransRef} style={transContainerStyle}>
-                <svg id="symbol-1" style={symbolSvgStyle} viewBox="0 0 200 200">
+                <svg ref={symbol1Ref} id="symbol-1" style={symbolSvgStyle} viewBox="0 0 200 200">
                     <circle cx="100" cy="100" r="10" fill="#fff" />
                     <circle cx="100" cy="100" r="40" fill="none" stroke="#fff" strokeWidth="1" strokeDasharray="5,5" />
                     <circle cx="100" cy="100" r="70" fill="none" stroke="#fff" strokeWidth="0.5" />
@@ -483,7 +489,7 @@ const Blueprint = ({ language, setLanguage }) => {
 
             {/* === III. VENUSTAS === */}
             <div ref={act3TransRef} style={transContainerStyle}>
-                <svg id="symbol-3" style={symbolSvgStyle} viewBox="0 0 200 200">
+                <svg ref={symbol3Ref} id="symbol-3" style={symbolSvgStyle} viewBox="0 0 200 200">
                     <path d="M100,10 C100,60 140,100 190,100 C140,100 100,140 100,190 C100,140 60,100 10,100 C60,100 100,60 100,10 Z" fill="none" stroke="#D1C7B7" strokeWidth="1" />
                     <circle cx="100" cy="100" r="20" fill="none" stroke="#D1C7B7" strokeWidth="0.5" />
                 </svg>
@@ -515,7 +521,6 @@ const Blueprint = ({ language, setLanguage }) => {
                         {/* Líneas "Hacker" */}
                         <div style={{ marginBottom: '30px', opacity: 0.9 }}>
                             {hackerLines.map((line, i) => (
-                                // FIX: wordBreak y whiteSpace para que el texto baje en celular y no se rompa
                                 <div key={i} className="hacker-line" style={{ opacity: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word', marginBottom: '2px' }}>{line}</div>
                             ))}
                         </div>

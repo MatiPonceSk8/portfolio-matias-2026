@@ -31,9 +31,12 @@ const Home = ({ language }) => {
   const sliderRef = useRef(null);
   const horizontalLineRef = useRef(null);
   const worksTitleRef = useRef(null);
-  const scene5Ref = useRef(null); // Marquee
-  const marqueeRef = useRef(null);
-  const secretPortalRef = useRef(null); 
+  
+  // --- NUEVAS REFERENCIAS PARA SECCIÓN BLUEPRINT ---
+  const scene5Ref = useRef(null); 
+  const blueprintBgRef = useRef(null); // Fondo específico para esta sección
+  const monolithRef = useRef(null);    // La tarjeta de vidrio
+  
   const scene6Ref = useRef(null); // Footer
   const footerTitleRef = useRef(null);
   const footerActionRef = useRef(null);
@@ -62,8 +65,10 @@ const Home = ({ language }) => {
       p2Title: 'HT AGRONEGOCIOS',
       p2Sub: 'CORPORATE IDENTITY',
       p2Desc: 'High-end corporate website featuring dynamic catalogs.',
-      marqueeText: 'STRATEGY — DESIGN — DEVELOPMENT — EXPERIENCE — STRATEGY — DESIGN — DEVELOPMENT — EXPERIENCE —',
-      secretBtn: '[ THE BLUEPRINT ]',
+      // NUEVOS TEXTOS BLUEPRINT
+      bpTitle: 'THE BLUEPRINT',
+      bpSub: 'EXPLORE THE ARCHITECTURE',
+      
       footerCall: "HAVE AN IDEA?",
       footerAction: "LET'S TALK",
       startBtn: "START PROJECT"
@@ -84,8 +89,10 @@ const Home = ({ language }) => {
       p2Title: 'HT AGRONEGOCIOS',
       p2Sub: 'IDENTIDAD CORPORATIVA',
       p2Desc: 'Sitio web corporativo de alto nivel con catálogos dinámicos.',
-      marqueeText: 'ESTRATEGIA — DISEÑO — DESARROLLO — EXPERIENCIA — ESTRATEGIA — DISEÑO — DESARROLLO — EXPERIENCIA —',
-      secretBtn: '[ EL PLANO MAESTRO ]',
+      // NUEVOS TEXTOS BLUEPRINT
+      bpTitle: 'EL PLANO MAESTRO',
+      bpSub: 'EXPLORA LA ARQUITECTURA',
+
       footerCall: "¿TIENES UNA IDEA?",
       footerAction: "HABLEMOS",
       startBtn: "INICIAR PROYECTO"
@@ -121,10 +128,31 @@ const Home = ({ language }) => {
     return () => bgLoop.pause();
   }, []);
 
-  // --- 2. TIMELINE SCROLL ---
+  // --- 2. TIMELINE SCROLL (OPTIMIZADO CON UPDATE) ---
   useEffect(() => {
     if (!window.anime) return;
-    const tl = window.anime.timeline({ autoplay: false, easing: 'linear' });
+
+    // Función auxiliar para gestionar clics según visibilidad
+    const managePointer = (ref) => {
+        if (!ref.current) return;
+        // Leemos la opacidad actual inyectada por anime.js
+        const opacity = parseFloat(ref.current.style.opacity);
+        // Si es visible (> 0.1), activamos clics. Si no, los desactivamos.
+        // El isNaN es por si la animación aún no arrancó y no hay style inline.
+        const isVisible = !isNaN(opacity) && opacity > 0.1;
+        ref.current.style.pointerEvents = isVisible ? 'auto' : 'none';
+    };
+
+    const tl = window.anime.timeline({ 
+        autoplay: false, 
+        easing: 'linear',
+        // ESTA ES LA CLAVE: Se ejecuta en cada frame del scroll para chequear visibilidad
+        update: () => {
+            managePointer(scene4Ref); // Proyectos
+            managePointer(scene5Ref); // Blueprint / Monolito
+            managePointer(scene6Ref); // Footer
+        }
+    });
 
     tl
     // ACTO 1: Intro
@@ -151,51 +179,67 @@ const Home = ({ language }) => {
     .add({ targets: worksTitleRef.current, top: ['50%', '8%'], left: ['50%', isMobile ? '50%' : '20%'], transform: ['translate(-50%, -50%)', isMobile ? 'translate(-50%, 0%)' : 'translate(0%, 0%)'], scale: [2, 0.6], color: ['#F8FAFC', '#64748B'], duration: 1500, easing: 'easeInOutCubic' })
     .add({ targets: horizontalLineRef.current, width: ['0%', '100%'], duration: 1000, easing: 'easeInOutExpo' }, '-=1000')
     
+    // Eliminamos 'begin' manual
     .add({ 
         targets: scene4Ref.current, 
         opacity: [0, 1], 
         duration: 500,
-        begin: () => { if(scene4Ref.current) scene4Ref.current.style.pointerEvents = 'auto'; }
     }, '-=500')
     .add({ targets: sliderRef.current, translateX: ['0%', isMobile ? '-180%' : '-60%'], duration: 6000, easing: 'linear' })
     
-    // --- ACTO 5: MARQUEE ---
+    // --- SALIDA DE PROYECTOS ---
+    // Eliminamos 'complete' manual
     .add({ 
         targets: [scene4Ref.current], 
         opacity: 0, 
         duration: 800,
-        complete: () => { if(scene4Ref.current) scene4Ref.current.style.pointerEvents = 'none'; }
     })
     .add({ targets: [horizontalLineRef.current, worksTitleRef.current], opacity: 0, duration: 800 }, '-=800')
     
-    .add({ targets: scene5Ref.current, opacity: [0, 1], duration: 500 })
-    .add({ targets: marqueeRef.current, translateX: ['0%', '-20%'], duration: 2000, easing: 'linear' })
-
-    // --- PORTAL SECRETO ---
+    // --- ACTO 5: THE BLUEPRINT (MONOLITO) - MODIFICADO ---
+    // 1. Entra el fondo específico de esta sección (tapa lo anterior suavemente)
+    .add({
+        targets: blueprintBgRef.current,
+        opacity: [0, 1],
+        duration: 1000,
+        easing: 'easeInOutQuad'
+    })
+    // 2. Entra el contenedor y la tarjeta
+    // Eliminamos 'begin' manual
     .add({ 
-        targets: secretPortalRef.current, 
+        targets: scene5Ref.current, 
         opacity: [0, 1], 
-        translateY: [20, 0],
         duration: 800,
-        easing: 'easeOutExpo',
-        begin: () => { if(secretPortalRef.current) secretPortalRef.current.style.pointerEvents = 'auto'; }
-    }, '-=1000')
+    }, '-=800')
+    .add({
+        targets: monolithRef.current,
+        opacity: [0, 1],
+        scale: [0.95, 1],
+        translateY: [30, 0],
+        duration: 1200,
+        easing: 'easeOutExpo'
+    }, '-=400')
+
+    // Pausa para apreciar
+    .add({ duration: 1000 })
+
+    // Salida del Blueprint hacia el Footer
+    // Eliminamos 'complete' manual
+    .add({ 
+        targets: [scene5Ref.current, blueprintBgRef.current], 
+        opacity: 0, 
+        scale: 1.05,
+        duration: 1000,
+        easing: 'easeInOutQuad',
+    })
 
     // --- ACTO 6: FOOTER ---
-    .add({ 
-        targets: secretPortalRef.current, 
-        opacity: 0, 
-        duration: 500,
-        complete: () => { if(secretPortalRef.current) secretPortalRef.current.style.pointerEvents = 'none'; }
-    }) 
-    .add({ targets: scene5Ref.current, opacity: 0, translateY: -50, duration: 800 }, '-=500')
-    
+    // Eliminamos 'begin' manual
     .add({ 
         targets: scene6Ref.current, 
         opacity: [0, 1], 
         duration: 100,
-        begin: () => { if(scene6Ref.current) scene6Ref.current.style.pointerEvents = 'auto'; }
-    })
+    }, '-=500')
     .add({ targets: footerTitleRef.current, scale: [0.8, 1], opacity: [0, 1], duration: 1000, easing: 'easeOutExpo' })
     .add({ targets: footerActionRef.current, translateY: [20, 0], opacity: [0, 1], duration: 800 }, '-=600')
     .add({ targets: startBtnRef.current, opacity: [0, 1], translateY: [20, 0], duration: 800 }, '-=400');
@@ -210,20 +254,33 @@ const Home = ({ language }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [language, isMobile]);
 
-  // Hook del Marquee
-  useEffect(() => {
-    if(!window.anime || !marqueeRef.current) return;
-    window.anime({
-        targets: marqueeRef.current,
-        translateX: ['0%', '-50%'],
-        duration: 20000,
-        easing: 'linear',
-        loop: true
-    });
-  }, []);
-
   return (
     <div ref={containerRef} style={{ height: isMobile ? '1600vh' : '2200vh', backgroundColor: '#EDE8E4', position: 'relative' }}>
+
+      {/* ESTILOS PARA LA TARJETA DE VIDRIO (GLASS MONOLITH) */}
+      <style>{`
+        .monolith-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.5);
+            transition: all 0.5s ease;
+        }
+        .monolith-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: scale(1.02);
+            box-shadow: 0 40px 70px -10px rgba(0, 0, 0, 0.6);
+        }
+        /* Línea decorativa animada al hover */
+        .monolith-line {
+            width: 40px; height: 1px; background: #fff; margin: 30px 0; opacity: 0.5; transition: width 0.4s ease;
+        }
+        .monolith-card:hover .monolith-line {
+            width: 80px; opacity: 0.9;
+        }
+      `}</style>
 
       <div style={{
         position: 'fixed', top: 0, left: 0, width: '100%', height: '100vh',
@@ -237,6 +294,13 @@ const Home = ({ language }) => {
             <g ref={patternBRef}><path d="M200 900 C 200 600, 600 300, 600 0" stroke="#333" strokeWidth="2" strokeOpacity="0.35" fill="none"/><path d="M1200 0 C 1200 300, 800 600, 800 900" stroke="#333" strokeWidth="2" strokeOpacity="0.35" fill="none"/><path d="M-100 450 C 400 450, 1000 450, 1540 450" stroke="#4a4a4a" strokeWidth="1.5" strokeOpacity="0.3" fill="none"/></g>
             <g ref={patternCRef}><path d="M0 200 C 400 800, 1000 800, 1440 200" stroke="#333" strokeWidth="2" strokeOpacity="0.4" fill="none"/><path d="M1440 700 C 1000 100, 400 100, 0 700" stroke="#4a4a4a" strokeWidth="1.5" strokeOpacity="0.4" fill="none"/></g>
         </svg>
+
+        {/* FONDO EXCLUSIVO PARA LA SECCIÓN BLUEPRINT */}
+        <div ref={blueprintBgRef} style={{
+             position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+             background: 'radial-gradient(circle at center, #1e2a45 0%, #020617 100%)', // Azul profundo elegante
+             zIndex: 9, opacity: 0, pointerEvents: 'none'
+        }}></div>
 
         {/* ESCENAS 1-3 */}
         <h1 ref={titleRef} style={{ position: 'absolute', fontFamily: '"Playfair Display", serif', fontSize: isMobile ? '16vw' : '13vw', fontWeight: '900', margin: 0, zIndex: 2, lineHeight: 0.8, color: '#1a1a1a', whiteSpace: 'nowrap', letterSpacing: '-5px' }}>{t.mainTitle}</h1>
@@ -293,20 +357,43 @@ const Home = ({ language }) => {
             </div>
         </div>
 
-        {/* --- ESCENA 5: MARQUEE --- */}
-        <div ref={scene5Ref} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 5, opacity: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', pointerEvents: 'none' }}>
-             <div style={{ width: '100%', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                <h2 ref={marqueeRef} style={{ fontFamily: '"Space Grotesk", sans-serif', fontSize: isMobile ? '12vw' : '6vw', color: '#1E293B', opacity: 0.3, textTransform: 'uppercase', margin: 0, fontWeight: '700', display: 'inline-block' }}>
-                    {t.marqueeText} {t.marqueeText}
-                </h2>
-             </div>
-        </div>
+        {/* --- ESCENA 5: EL MONOLITO (Reemplaza a Marquee y Secret Portal) --- */}
+        <div ref={scene5Ref} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 10, opacity: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', pointerEvents: 'none' }}>
+             
+             {/* TARJETA DE VIDRIO (Glass Monolith) */}
+             <div 
+                ref={monolithRef}
+                className="monolith-card"
+                onClick={() => navigate('/blueprint')}
+                style={{
+                    width: isMobile ? '80vw' : '45vw',
+                    height: isMobile ? '45vh' : '55vh',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    cursor: 'pointer',
+                    borderRadius: '2px', // Bordes afilados, técnicos
+                    padding: '20px'
+                }}
+             >
+                {/* Esquinas Técnicas */}
+                <div style={{ position: 'absolute', top: 15, left: 15, width: 10, height: 10, borderTop: '1px solid rgba(255,255,255,0.4)', borderLeft: '1px solid rgba(255,255,255,0.4)' }} />
+                <div style={{ position: 'absolute', top: 15, right: 15, width: 10, height: 10, borderTop: '1px solid rgba(255,255,255,0.4)', borderRight: '1px solid rgba(255,255,255,0.4)' }} />
+                <div style={{ position: 'absolute', bottom: 15, left: 15, width: 10, height: 10, borderBottom: '1px solid rgba(255,255,255,0.4)', borderLeft: '1px solid rgba(255,255,255,0.4)' }} />
+                <div style={{ position: 'absolute', bottom: 15, right: 15, width: 10, height: 10, borderBottom: '1px solid rgba(255,255,255,0.4)', borderRight: '1px solid rgba(255,255,255,0.4)' }} />
 
-        {/* --- PORTAL SECRETO --- */}
-        <div ref={secretPortalRef} style={{ position: 'absolute', bottom: '25%', left: '50%', transform: 'translateX(-50%)', zIndex: 100, opacity: 0, pointerEvents: 'none' }}>
-            <button onClick={() => navigate('/blueprint')} style={{ background: 'transparent', border: 'none', fontFamily: '"Space Grotesk", sans-serif', fontSize: '0.8rem', color: '#64748B', letterSpacing: '3px', cursor: 'pointer', transition: 'color 0.3s ease' }}>
-                {t.secretBtn}
-            </button>
+                <h2 style={{ fontFamily: '"Italiana", serif', fontSize: isMobile ? '2.5rem' : '4rem', color: '#fff', margin: 0, letterSpacing: '4px', textAlign: 'center', zIndex: 2 }}>
+                    {t.bpTitle}
+                </h2>
+                
+                <div className="monolith-line"></div>
+                
+                <span style={{ fontFamily: '"Space Grotesk", sans-serif', fontSize: '0.75rem', color: '#cbd5e1', letterSpacing: '4px', textTransform: 'uppercase', zIndex: 2, textAlign: 'center' }}>
+                    {t.bpSub}
+                </span>
+             </div>
+
         </div>
 
         {/* --- ESCENA 6: FOOTER --- */}
@@ -318,7 +405,6 @@ const Home = ({ language }) => {
              </div>
 
              <div ref={startBtnRef} style={{ marginTop: '60px' }}>
-                 {/* CORRECCIÓN: Agregados onMouseEnter y onMouseLeave para el efecto hover */}
                  <button 
                     onClick={() => navigate('/contact')} 
                     style={{ background: 'transparent', border: '1px solid #475569', color: '#F8FAFC', padding: '15px 40px', borderRadius: '50px', fontFamily: '"Space Grotesk", sans-serif', fontSize: '0.9rem', letterSpacing: '2px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', transition: 'all 0.3s ease' }} 
