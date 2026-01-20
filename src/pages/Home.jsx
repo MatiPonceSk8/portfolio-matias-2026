@@ -23,6 +23,8 @@ const Home = ({ language }) => {
   const roleRef = useRef(null);
   const bioRef = useRef(null);
   const locationRef = useRef(null);
+  const profileBtnRef = useRef(null); // <--- NUEVA REFERENCIA PARA EL BOTÓN
+  
   const scene3Ref = useRef(null);
   const philoTitleRef = useRef(null);
   const philoTextRef = useRef(null);
@@ -55,6 +57,8 @@ const Home = ({ language }) => {
       role: 'CREATIVE DEVELOPER',
       bio: 'I craft digital experiences where\nlogic meets emotion.',
       location: 'BASED IN ARGENTINA — 2026',
+      viewProfile: "VIEW PROFILE", // <--- NUEVO TEXTO
+      
       scroll: 'SCROLL TO DISCOVER',
       philoTitle: 'The Philosophy',
       philoText: 'Aesthetics is not superficial; it is the first layer of intelligence.\nWe merge engineering logic with artistic sensibility to craft experiences that are not just used, but felt.',
@@ -79,6 +83,8 @@ const Home = ({ language }) => {
       role: 'DESARROLLADOR CREATIVO',
       bio: 'Creo experiencias digitales donde\nla lógica encuentra a la emoción.',
       location: 'DESDE ARGENTINA — 2026',
+      viewProfile: "VER PERFIL", // <--- NUEVO TEXTO
+
       scroll: 'DESLIZA PARA DESCUBRIR',
       philoTitle: 'La Filosofía',
       philoText: 'La estética no es superficial, es la primera capa de la inteligencia.\nFusionamos la lógica de la ingeniería con la sensibilidad del arte para crear experiencias que no solo se usan, se sienten.',
@@ -132,13 +138,10 @@ const Home = ({ language }) => {
   useEffect(() => {
     if (!window.anime) return;
 
-    // Función auxiliar para gestionar clics según visibilidad
+    // Función auxiliar para gestionar clics según visibilidad (Fix del Scroll)
     const managePointer = (ref) => {
         if (!ref.current) return;
-        // Leemos la opacidad actual inyectada por anime.js
         const opacity = parseFloat(ref.current.style.opacity);
-        // Si es visible (> 0.1), activamos clics. Si no, los desactivamos.
-        // El isNaN es por si la animación aún no arrancó y no hay style inline.
         const isVisible = !isNaN(opacity) && opacity > 0.1;
         ref.current.style.pointerEvents = isVisible ? 'auto' : 'none';
     };
@@ -146,7 +149,7 @@ const Home = ({ language }) => {
     const tl = window.anime.timeline({ 
         autoplay: false, 
         easing: 'linear',
-        // ESTA ES LA CLAVE: Se ejecuta en cada frame del scroll para chequear visibilidad
+        // ESTA ES LA CLAVE: Se ejecuta en cada frame del scroll
         update: () => {
             managePointer(scene4Ref); // Proyectos
             managePointer(scene5Ref); // Blueprint / Monolito
@@ -157,16 +160,21 @@ const Home = ({ language }) => {
     tl
     // ACTO 1: Intro
     .add({ targets: titleRef.current, scale: [1, 2], opacity: [1, 0], filter: ['blur(0px)', 'blur(10px)'], duration: 1000 })
-    // ACTO 2: Manifiesto
+    
+    // ACTO 2: Manifiesto (Identidad)
     .add({ targets: scene2Ref.current, opacity: [0, 1], duration: 100 }, '-=500')
     .add({ targets: nameRef.current, translateY: ['50px', '0px'], opacity: [0, 1], duration: 800, easing: 'easeOutQuart' })
     .add({ targets: roleRef.current, opacity: [0, 1], duration: 600 }, '-=600')
     .add({ targets: bioRef.current, translateY: ['20px', '0px'], opacity: [0, 1], duration: 800 }, '-=400')
     .add({ targets: locationRef.current, opacity: [0, 1], duration: 800 }, '-=600')
+    // ANIMACIÓN DE ENTRADA DEL NUEVO BOTÓN
+    .add({ targets: profileBtnRef.current, opacity: [0, 1], translateY: [20, 0], duration: 800 }, '-=600') 
+
     // DARK MODE
     .add({ targets: scene2Ref.current, opacity: [1, 0], translateY: [0, -50], duration: 800, delay: 500 })
     .add({ targets: containerRef.current, backgroundColor: ['#EDE8E4', '#0B1120'], duration: 1200, easing: 'easeInOutQuad' }, '-=800')
     .add({ targets: svgRef.current.querySelectorAll('path'), stroke: ['#333333', '#A1A1AA'], strokeOpacity: [0.4, 0.15], duration: 1200 }, '-=1200')
+    
     // ACTO 3: Filosofía
     .add({ targets: scene3Ref.current, opacity: [0, 1], duration: 100 }, '-=500')
     .add({ targets: philoTitleRef.current, opacity: [0, 1], translateY: [30, 0], duration: 800, easing: 'easeOutCubic' })
@@ -179,7 +187,6 @@ const Home = ({ language }) => {
     .add({ targets: worksTitleRef.current, top: ['50%', '8%'], left: ['50%', isMobile ? '50%' : '20%'], transform: ['translate(-50%, -50%)', isMobile ? 'translate(-50%, 0%)' : 'translate(0%, 0%)'], scale: [2, 0.6], color: ['#F8FAFC', '#64748B'], duration: 1500, easing: 'easeInOutCubic' })
     .add({ targets: horizontalLineRef.current, width: ['0%', '100%'], duration: 1000, easing: 'easeInOutExpo' }, '-=1000')
     
-    // Eliminamos 'begin' manual
     .add({ 
         targets: scene4Ref.current, 
         opacity: [0, 1], 
@@ -188,7 +195,6 @@ const Home = ({ language }) => {
     .add({ targets: sliderRef.current, translateX: ['0%', isMobile ? '-180%' : '-60%'], duration: 6000, easing: 'linear' })
     
     // --- SALIDA DE PROYECTOS ---
-    // Eliminamos 'complete' manual
     .add({ 
         targets: [scene4Ref.current], 
         opacity: 0, 
@@ -196,16 +202,13 @@ const Home = ({ language }) => {
     })
     .add({ targets: [horizontalLineRef.current, worksTitleRef.current], opacity: 0, duration: 800 }, '-=800')
     
-    // --- ACTO 5: THE BLUEPRINT (MONOLITO) - MODIFICADO ---
-    // 1. Entra el fondo específico de esta sección (tapa lo anterior suavemente)
+    // --- ACTO 5: THE BLUEPRINT (MONOLITO) ---
     .add({
         targets: blueprintBgRef.current,
         opacity: [0, 1],
         duration: 1000,
         easing: 'easeInOutQuad'
     })
-    // 2. Entra el contenedor y la tarjeta
-    // Eliminamos 'begin' manual
     .add({ 
         targets: scene5Ref.current, 
         opacity: [0, 1], 
@@ -224,7 +227,6 @@ const Home = ({ language }) => {
     .add({ duration: 1000 })
 
     // Salida del Blueprint hacia el Footer
-    // Eliminamos 'complete' manual
     .add({ 
         targets: [scene5Ref.current, blueprintBgRef.current], 
         opacity: 0, 
@@ -234,7 +236,6 @@ const Home = ({ language }) => {
     })
 
     // --- ACTO 6: FOOTER ---
-    // Eliminamos 'begin' manual
     .add({ 
         targets: scene6Ref.current, 
         opacity: [0, 1], 
@@ -307,9 +308,53 @@ const Home = ({ language }) => {
         
         <div ref={scene2Ref} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', zIndex: 3, opacity: 0, textAlign: 'center', padding: '0 20px', boxSizing: 'border-box' }}>
             <h3 ref={roleRef} style={{ fontFamily: '"Inter", sans-serif', fontSize: isMobile ? '0.8rem' : '1rem', fontWeight: '500', letterSpacing: '4px', marginBottom: '15px', color: '#666', display: 'flex', alignItems: 'center', gap: '15px' }}><span style={{ height: '1px', width: '30px', background: '#999' }}></span>{t.role}<span style={{ height: '1px', width: '30px', background: '#999' }}></span></h3>
-            <h2 ref={nameRef} style={{ fontFamily: '"Playfair Display", serif', fontSize: isMobile ? '12vw' : '6vw', fontWeight: '400', margin: '10px 0', color: '#1a1a1a', fontStyle: 'italic' }}>{t.name}</h2>
+            
+            {/* NOMBRE (YA NO ES CLICKEABLE) */}
+            <h2 
+                ref={nameRef} 
+                style={{ 
+                    fontFamily: '"Playfair Display", serif', 
+                    fontSize: isMobile ? '12vw' : '6vw', 
+                    fontWeight: '400', 
+                    margin: '10px 0', 
+                    color: '#1a1a1a', 
+                    fontStyle: 'italic',
+                }}
+            >
+                {t.name}
+            </h2>
+
             <p ref={bioRef} style={{ fontFamily: '"Inter", sans-serif', fontSize: isMobile ? '1rem' : '1.5rem', maxWidth: isMobile ? '100%' : '600px', marginTop: '20px', lineHeight: '1.5', color: '#333', fontWeight: '300' }}>{t.bio}</p>
             <div ref={locationRef} style={{ marginTop: '60px', fontFamily: '"Inter", sans-serif', fontSize: '0.8rem', letterSpacing: '2px', fontWeight: 'bold', color: '#1a1a1a', borderBottom: '1px solid #1a1a1a', paddingBottom: '5px' }}>{t.location}</div>
+        
+            {/* --- NUEVO BOTÓN DE PERFIL --- */}
+            <div ref={profileBtnRef} style={{ marginTop: '40px', opacity: 0 }}>
+                <button
+                    onClick={() => navigate('/profile')}
+                    style={{
+                        background: 'transparent',
+                        border: '1px solid rgba(26, 26, 26, 0.3)',
+                        borderRadius: '30px', // Borde redondeado elegante
+                        padding: '12px 35px',
+                        color: '#1a1a1a',
+                        fontFamily: '"Space Grotesk", sans-serif',
+                        fontSize: '0.8rem',
+                        letterSpacing: '2px',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                        e.target.style.borderColor = '#1a1a1a';
+                        e.target.style.transform = 'scale(1.05)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.target.style.borderColor = 'rgba(26, 26, 26, 0.3)';
+                        e.target.style.transform = 'scale(1)';
+                    }}
+                >
+                    {t.viewProfile}
+                </button>
+            </div>
         </div>
         
         <div ref={scene3Ref} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', zIndex: 3, opacity: 0, textAlign: 'center', pointerEvents: 'none', padding: '0 20px', boxSizing: 'border-box' }}>
