@@ -65,7 +65,7 @@ const Profile = ({ language, setLanguage }) => {
       // BOOM & PHILOSOPHY
       boomTitle: "ALCHEMY",
       philoHeadline: "Logic is invisible without form.",
-      philoSub: "Design is not decoration. It is the reflection of who we are.",
+      philoSub: "Design is not decoration. It is the reflection of who you are.",
 
       // FOOTER
       contactBtn: "INITIATE PROTOCOL",
